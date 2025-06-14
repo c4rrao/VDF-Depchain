@@ -132,7 +132,6 @@ public class Client {
             return;
         }
 
-        boolean changesState = true;
         ClientReq req = null;
         String command = parts[0].toUpperCase();
 
@@ -163,7 +162,6 @@ public class Client {
                 throw new IllegalArgumentException("Unknown client ID: " + clientId);
             }
 
-            changesState = false;
             Logger.LOG("Client address: " + clientAddress);
             req = new BalanceOfDepCoinReq(clientId, count, clientAddress);
         }
@@ -231,7 +229,6 @@ public class Client {
                         "Unknown function '" + functionName + "' for contract '" + contractName + "'");
             }
 
-            String methodSignature = methodSignatures.get(functionName);
             switch (functionName) {
                 // No arguments functions
                 case "balanceOf":
@@ -363,7 +360,7 @@ public class Client {
 
         Logger.LOG("Reading public keys from: " + keysDir.getAbsolutePath());
 
-        File[] keyFiles = keysDir.listFiles((dir, name) -> name.startsWith("pub") && name.endsWith(".key"));
+        File[] keyFiles = keysDir.listFiles((_, name) -> name.startsWith("pub") && name.endsWith(".key"));
         if (keyFiles == null || keyFiles.length == 0) {
             throw new RuntimeException("No public keys found in " + keysDir.getAbsolutePath());
         }

@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 import org.hyperledger.besu.datatypes.Address;
 
 import pt.tecnico.ulisboa.Config;
-import pt.tecnico.ulisboa.client.Client;
+import pt.tecnico.ulisboa.blocks.Block;
 import pt.tecnico.ulisboa.consensus.BFTConsensus;
 import pt.tecnico.ulisboa.consensus.message.ConsensusMessage;
 import pt.tecnico.ulisboa.consensus.message.ConsensusMessageHandler;
@@ -231,7 +231,7 @@ public class Server {
 
         Logger.LOG("Reading public keys from: " + keysDir.getAbsolutePath());
 
-        File[] keyFiles = keysDir.listFiles((dir, name) -> name.startsWith("pub") && name.endsWith(".key"));
+        File[] keyFiles = keysDir.listFiles((_, name) -> name.startsWith("pub") && name.endsWith(".key"));
         if (keyFiles == null || keyFiles.length == 0) {
             throw new RuntimeException("No public keys found in " + keysDir.getAbsolutePath());
         }

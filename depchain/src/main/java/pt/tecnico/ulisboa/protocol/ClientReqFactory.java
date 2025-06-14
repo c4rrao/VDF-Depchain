@@ -1,7 +1,6 @@
 package pt.tecnico.ulisboa.protocol;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonArray;
 import java.math.BigInteger;
 

@@ -2,10 +2,6 @@ package pt.tecnico.ulisboa.client;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.checkerframework.checker.units.qual.m;
 
 import pt.tecnico.ulisboa.Config;
 import pt.tecnico.ulisboa.network.MessageHandler;

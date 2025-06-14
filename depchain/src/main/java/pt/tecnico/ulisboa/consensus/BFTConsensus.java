@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import pt.tecnico.ulisboa.Config;
+import pt.tecnico.ulisboa.blocks.Block;
 import pt.tecnico.ulisboa.consensus.message.ConsensusMessage;
 import pt.tecnico.ulisboa.protocol.ClientReq;
-import pt.tecnico.ulisboa.server.Block;
 import pt.tecnico.ulisboa.server.Server;
 import pt.tecnico.ulisboa.utils.types.Logger;
 

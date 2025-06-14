@@ -1,4 +1,4 @@
-package pt.tecnico.ulisboa.server;
+package pt.tecnico.ulisboa.blocks;
 
 import java.util.List;
 import java.util.Map;
@@ -14,45 +14,66 @@ import pt.tecnico.ulisboa.utils.types.Logger;
 
 public class Block implements Consensable, Serializable {
 
-    private static final long serialVersionUID = 1L;
-    private final int maxTxPerBlock = Config.TX_PER_BLOCK;
+    protected static final long serialVersionUID = 1L;
+    protected final int maxTxPerBlock = Config.TX_PER_BLOCK;
 
-    private Integer blockId;
-    private final String prevHash;
-    private final String blockHash;
-    private final List<ClientReq> transactions;
+    protected Integer height;
+    protected String prevHash;
+    protected String blockHash;
+    protected List<ClientReq> transactions;
+    protected long timestamp;
 
     // constructor to load a already existing block
-    public Block(String prevHash, Integer blockId, String blockHash, List<ClientReq> transactions) {
-        this.blockId = blockId;
+    public Block(String prevHash, Integer height, String blockHash, List<ClientReq> transactions, long timestamp) {
+        this.height = height;
         this.prevHash = prevHash;
         this.blockHash = blockHash;
         this.transactions = transactions;
+        this.timestamp = timestamp;
     }
+
+    // constructor to load a already existing block
+    public Block(String prevHash, Integer height, String blockHash, List<ClientReq> transactions) {
+        this(prevHash, height, blockHash, transactions, System.currentTimeMillis());
+    }
+
 
     // constructor for genesis block and for server to create an empty block.
     public Block() {
-        this.blockId = 0;
+        this.height = 0;
         this.prevHash = null;
         this.transactions = new ArrayList<>();
         this.blockHash = computeBlockHash();
+        this.timestamp = System.currentTimeMillis();
     }
 
     // constructor for genesis block and for server to create an empty block.
-    public Block(String prevHash, int blockId, List<ClientReq> txs) {
-        this.blockId = blockId;
+    public Block(String prevHash, int height, List<ClientReq> txs) {
+        this(prevHash, height, null, txs, System.currentTimeMillis());
+    }
+
+    // constructor for genesis block and for server to create an empty block.
+    public Block(String prevHash, int height, List<ClientReq> txs, long timestamp) {
+        this.height = height;
         this.prevHash = prevHash;
         this.transactions = new ArrayList<>(txs);
         this.blockHash = computeBlockHash();
+        this.timestamp = timestamp;
     }
 
     public String computeBlockHash() {
         StringBuilder blockData = new StringBuilder();
         blockData.append(prevHash != null ? prevHash : "");
-        for (ClientReq tx : transactions) {
-            blockData.append(tx.toString());
-        }
+        blockData.append(getTransactionsHash());
         return CryptoUtils.hashSHA256(blockData.toString().getBytes());
+    }
+
+    public String getTransactionsHash() {
+        StringBuilder txHash = new StringBuilder();
+        for (ClientReq tx : transactions) {
+            txHash.append(tx.toString());
+        }
+        return CryptoUtils.hashSHA256(txHash.toString().getBytes());
     }
 
     public void appendTransaction(ClientReq transaction) {
@@ -102,21 +123,32 @@ public class Block implements Consensable, Serializable {
         return blockHash;
     }
 
-    public Integer getId() {
-        return blockId;
+    public void setHash(String hash) {
+        if (hash == null || hash.isEmpty()) {
+            throw new IllegalArgumentException("Hash cannot be null or empty");
+        }
+        this.blockHash = hash;
+    }
+
+    public Integer getHeight() {
+        return height;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 
     public List<ClientReq> getTransactions() {
         return transactions;
     }
 
-    public void setId(Integer blockId) {
-        this.blockId = blockId;
+    public void setHeight(Integer height) {
+        this.height = height;
     }
 
     public void printBlock() {
         System.out.println("┌───────────────────────────────────────────────────────────────┐");
-        System.out.println("│ Block ID: " + blockId + "                                    │");
+        System.out.println("│ Block ID: " + height + "                                    │");
         System.out.println("│ Previous Hash: " + prevHash + "                          │");
         System.out.println("│ Block Hash: " + blockHash + "                             │");
         System.out.println("│ Transactions:                                             │");

@@ -7,7 +7,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 
 import pt.tecnico.ulisboa.utils.ContractUtils;
-import pt.tecnico.ulisboa.utils.types.Logger;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 

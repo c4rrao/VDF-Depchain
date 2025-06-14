@@ -29,6 +29,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import pt.tecnico.ulisboa.Config;
+import pt.tecnico.ulisboa.blocks.Block;
 import pt.tecnico.ulisboa.contracts.AbiParameter;
 import pt.tecnico.ulisboa.contracts.AbiParameter.AbiType;
 import pt.tecnico.ulisboa.contracts.Contract;
@@ -124,7 +125,7 @@ public class BlockchainPersistenceManager {
         rootObj.add("state", stateObj);
 
         // Write to file
-        String blockFileName = String.format("%s/block_%d.json", dataDirectory, block.getId());
+        String blockFileName = String.format("%s/block_%d.json", dataDirectory, block.getHeight());
         try (FileWriter writer = new FileWriter(blockFileName)) {
             gson.toJson(rootObj, writer);
         }
@@ -149,8 +150,8 @@ public class BlockchainPersistenceManager {
             Block previousBlock = blockchain.get(i - 1);
 
             // Check block ID sequence
-            if (currentBlock.getId() != i) {
-                Logger.LOG("Block ID mismatch: expected " + i + ", got " + currentBlock.getId());
+            if (currentBlock.getHeight() != i) {
+                Logger.LOG("Block ID mismatch: expected " + i + ", got " + currentBlock.getHeight());
                 return false;
             }
 
@@ -282,7 +283,6 @@ public class BlockchainPersistenceManager {
 
     @SuppressWarnings("unchecked")
     private JsonObject worldToJson(SimpleWorld state, Map<String, Contract> contracts) {
-        int count = 0;
         JsonObject stateObj = new JsonObject();
 
         Collection<SimpleAccount> simpleAccount = (Collection<SimpleAccount>) state.getTouchedAccounts();

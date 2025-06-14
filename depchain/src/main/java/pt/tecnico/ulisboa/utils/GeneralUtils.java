@@ -2,11 +2,6 @@ package pt.tecnico.ulisboa.utils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.io.FileReader;
-import java.io.IOException;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 
 import pt.tecnico.ulisboa.Config;

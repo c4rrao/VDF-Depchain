@@ -5,7 +5,6 @@ import java.io.PrintStream;
 import java.math.BigInteger;
 import java.security.PublicKey;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,16 +12,15 @@ import java.util.Map;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.ethereum.core.MutableWorldState;
 import org.hyperledger.besu.evm.EvmSpecVersion;
 import org.hyperledger.besu.evm.account.MutableAccount;
 import org.hyperledger.besu.evm.fluent.EVMExecutor;
 import org.hyperledger.besu.evm.fluent.SimpleWorld;
-import org.hyperledger.besu.evm.fluent.SimpleAccount;
 import org.hyperledger.besu.evm.tracing.StandardJsonTracer;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 
 import pt.tecnico.ulisboa.Config;
+import pt.tecnico.ulisboa.blocks.Block;
 import pt.tecnico.ulisboa.contracts.AbiParameter.AbiType;
 import pt.tecnico.ulisboa.contracts.AbiParameter;
 import pt.tecnico.ulisboa.contracts.Contract;
@@ -63,7 +61,7 @@ public class BlockchainManager {
             this.world = persistenceManager.loadGenesisBlock(blockchain, contracts); // this changes the blockchain and
                                                                                      // the contract map
 
-            Block lastBlock = blockchain.get(blockchain.size() - 1);
+            // Block lastBlock = blockchain.get(blockchain.size() - 1);
             this.clientAddresses = new HashMap<>();
             for (Map.Entry<Integer, String> entry : Config.CLIENT_ID_2_ADDR.entrySet()) {
                 clientAddresses.put(entry.getKey(), Address.fromHexString(entry.getValue()));
@@ -167,7 +165,7 @@ public class BlockchainManager {
             } else {
                 blockchain.add(block);
                 Block lastBlock = blockchain.get(blockchain.size() - 1);
-                block.setId(lastBlock.getId() + 1);
+                block.setHeight(lastBlock.getHeight() + 1);
             }
             blockchain.add(block);
             persistenceManager.persistBlock(block, world, contracts);
@@ -303,8 +301,8 @@ public class BlockchainManager {
             lastBlock = new Block(null, -1, null, new ArrayList<>());
         }
 
-        if (!block.getId().equals(lastBlock.getId() + 1)) {
-            Logger.LOG("Invalid block ID: " + block.getId() + ", expected: " + (lastBlock.getId() + 1));
+        if (!block.getHeight().equals(lastBlock.getHeight() + 1)) {
+            Logger.LOG("Invalid block ID: " + block.getHeight() + ", expected: " + (lastBlock.getHeight() + 1));
         }
 
         if (!block.getPrevHash().equals(lastBlock.getHash())) {

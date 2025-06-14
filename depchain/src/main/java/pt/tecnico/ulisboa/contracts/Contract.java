@@ -3,14 +3,11 @@ package pt.tecnico.ulisboa.contracts;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
-
-import org.apache.tuweni.bytes.Bytes;
-import org.checkerframework.checker.units.qual.A;
 import org.hyperledger.besu.datatypes.Address;
 
 public class Contract {
     protected final String address; // hex string of the address
-    private static HashMap<String, ContractMethod> functions;
+    private HashMap<String, ContractMethod> functions;
 
     public Contract(String address, HashMap<String, ContractMethod> functions) {
         this.address = address;

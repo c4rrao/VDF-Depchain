@@ -7,18 +7,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Collection;
 
-import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.Account;
-import org.hyperledger.besu.evm.account.MutableAccount;
-import org.hyperledger.besu.evm.fluent.SimpleAccount;
-import org.hyperledger.besu.datatypes.Wei;
+
 import org.hyperledger.besu.evm.fluent.SimpleWorld;
 import org.web3j.crypto.Hash;
 import org.web3j.utils.Numeric;
@@ -26,10 +18,7 @@ import org.web3j.utils.Numeric;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonElement;
 
-import pt.tecnico.ulisboa.contracts.Contract;
-import pt.tecnico.ulisboa.server.Block;
 import pt.tecnico.ulisboa.utils.types.Logger;
 
 public class ContractUtils {
