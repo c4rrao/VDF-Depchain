@@ -25,10 +25,11 @@ import java.util.concurrent.Executors;
 import org.hyperledger.besu.datatypes.Address;
 
 import pt.tecnico.ulisboa.Config;
-import pt.tecnico.ulisboa.blocks.Block;
-import pt.tecnico.ulisboa.consensus.BFTConsensus;
-import pt.tecnico.ulisboa.consensus.message.ConsensusMessage;
-import pt.tecnico.ulisboa.consensus.message.ConsensusMessageHandler;
+import pt.tecnico.ulisboa.blockchain.BlockchainManager;
+import pt.tecnico.ulisboa.blockchain.blocks.Block;
+import pt.tecnico.ulisboa.consensus.bft.BFTConsensus;
+import pt.tecnico.ulisboa.consensus.bft.message.ConsensusMessage;
+import pt.tecnico.ulisboa.consensus.bft.message.ConsensusMessageHandler;
 import pt.tecnico.ulisboa.network.APLImpl;
 import pt.tecnico.ulisboa.network.ClientAplManager;
 import pt.tecnico.ulisboa.network.ServerAplManager;

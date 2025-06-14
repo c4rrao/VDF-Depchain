@@ -3,7 +3,7 @@ package pt.tecnico.ulisboa.server.byzantine;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import pt.tecnico.ulisboa.consensus.message.ConsensusMessage;
+import pt.tecnico.ulisboa.consensus.bft.message.ConsensusMessage;
 import pt.tecnico.ulisboa.server.Server;
 import pt.tecnico.ulisboa.utils.types.Logger;
 

@@ -4,8 +4,8 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import pt.tecnico.ulisboa.consensus.message.ConsensusMessage;
-import pt.tecnico.ulisboa.consensus.message.ConsensusMessage.MessageType;
+import pt.tecnico.ulisboa.consensus.bft.message.ConsensusMessage;
+import pt.tecnico.ulisboa.consensus.bft.message.ConsensusMessage.MessageType;
 import pt.tecnico.ulisboa.server.Server;
 import pt.tecnico.ulisboa.utils.types.Logger;
 

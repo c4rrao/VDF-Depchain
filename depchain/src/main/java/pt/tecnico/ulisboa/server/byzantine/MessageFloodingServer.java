@@ -2,10 +2,10 @@ package pt.tecnico.ulisboa.server.byzantine;
 
 import java.util.Random;
 
-import pt.tecnico.ulisboa.consensus.message.ConsensusMessage;
-import pt.tecnico.ulisboa.consensus.message.AcceptMessage;
-import pt.tecnico.ulisboa.consensus.message.WriteMessage;
-import pt.tecnico.ulisboa.consensus.message.ReadMessage;
+import pt.tecnico.ulisboa.consensus.bft.message.AcceptMessage;
+import pt.tecnico.ulisboa.consensus.bft.message.ConsensusMessage;
+import pt.tecnico.ulisboa.consensus.bft.message.ReadMessage;
+import pt.tecnico.ulisboa.consensus.bft.message.WriteMessage;
 import pt.tecnico.ulisboa.server.Server;
 import pt.tecnico.ulisboa.utils.types.Logger;
 

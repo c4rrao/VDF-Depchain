@@ -3,7 +3,7 @@ package pt.tecnico.ulisboa.network.message;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import pt.tecnico.ulisboa.consensus.message.ConsensusMessage;
+import pt.tecnico.ulisboa.consensus.bft.message.ConsensusMessage;
 import pt.tecnico.ulisboa.protocol.ClientReq;
 import pt.tecnico.ulisboa.protocol.RegisterReq;
 import pt.tecnico.ulisboa.utils.SerializationUtils;

@@ -3,13 +3,13 @@ package pt.tecnico.ulisboa.server.byzantine;
 import java.math.BigInteger;
 import java.util.List;
 
-import pt.tecnico.ulisboa.consensus.message.ConsensusMessage;
-import pt.tecnico.ulisboa.consensus.message.AcceptMessage;
-import pt.tecnico.ulisboa.consensus.message.WriteMessage;
 import pt.tecnico.ulisboa.server.Server;
 import pt.tecnico.ulisboa.utils.types.Logger;
 import pt.tecnico.ulisboa.Config;
-import pt.tecnico.ulisboa.blocks.Block;
+import pt.tecnico.ulisboa.blockchain.blocks.Block;
+import pt.tecnico.ulisboa.consensus.bft.message.AcceptMessage;
+import pt.tecnico.ulisboa.consensus.bft.message.ConsensusMessage;
+import pt.tecnico.ulisboa.consensus.bft.message.WriteMessage;
 import pt.tecnico.ulisboa.protocol.ClientReq;
 import pt.tecnico.ulisboa.protocol.TransferDepCoinReq;
 
