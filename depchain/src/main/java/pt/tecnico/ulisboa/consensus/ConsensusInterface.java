@@ -2,36 +2,25 @@ package pt.tecnico.ulisboa.consensus;
 
 import java.util.List;
 
-import pt.tecnico.ulisboa.blockchain.blocks.HybridBlock;
+import pt.tecnico.ulisboa.blockchain.blocks.Block;
 import pt.tecnico.ulisboa.protocol.ClientReq;
 
 public interface ConsensusInterface {
-    
-    /**
-     * Start the consensus mechanism
-     */
-    void start();
-    
     /**
      * Propose a new block with given transactions and previous hash
      */
-    HybridBlock proposeBlock(List<ClientReq> transactions, String previousHash);
+    Block mineBlock(Block previousBlock, List<ClientReq> transactions);
     
     /**
-     * Finalize a block (add VDF proof, etc.)
+     * Finalize a block with given transactions and previous hash
      */
-    void finalizeBlock(HybridBlock block);
-    
+    void finalizeBlock(Block block);
+
     /**
      * Validate a block according to consensus rules
      */
-    boolean validateBlock(HybridBlock block);
-    
-    /**
-     * Check if the consensus mechanism is ready to process blocks
-     */
-    boolean isReadyForConsensus();
-    
+    boolean validateBlock(Block block);
+
     /**
      * Get the consensus type identifier
      */

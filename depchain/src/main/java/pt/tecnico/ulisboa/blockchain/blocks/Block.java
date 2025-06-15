@@ -37,7 +37,6 @@ public class Block implements Consensable, Serializable {
         this(prevHash, height, blockHash, transactions, System.currentTimeMillis());
     }
 
-
     // constructor for genesis block and for server to create an empty block.
     public Block() {
         this.height = 0;

@@ -1,96 +1,99 @@
 package pt.tecnico.ulisboa.consensus.pow_plus_posw.pow;
 
-import java.math.BigInteger;
 import java.util.List;
+import java.util.TreeMap;
 
+import pt.tecnico.ulisboa.blockchain.blocks.Block;
 import pt.tecnico.ulisboa.blockchain.blocks.HybridBlock;
 import pt.tecnico.ulisboa.consensus.ConsensusInterface;
 import pt.tecnico.ulisboa.protocol.ClientReq;
-
 public class PoWConsensus implements ConsensusInterface {
     private final DifficultyAdjustment difficultyAdjuster;
     private final PoWValidator validator;
-    private BigInteger currentDifficulty;
-    private static final int TARGET_BLOCK_TIME = 600; // 10 minutes in seconds
+    private TreeMap<Integer, Integer> currentDifficulty = new TreeMap<>();
     
     public PoWConsensus() {
         this.difficultyAdjuster = new DifficultyAdjustment();
         this.validator = new PoWValidator();
-        this.currentDifficulty = BigInteger.valueOf(0x1d00ffff); // Initial difficulty
+        // Initialize difficulty for the first block
+        currentDifficulty.put(0, Integer.valueOf(2));
     }
     
     @Override
-    public void start() {
-        System.out.println("PoW Consensus started with initial difficulty: " + currentDifficulty);
+    public boolean validateBlock(Block block) {
+        if (block == null || !(block instanceof HybridBlock)) {
+            throw new IllegalArgumentException("Block must be a valid HybridBlock");
+        }
+        HybridBlock hybridBlock = (HybridBlock) block;
+
+        return validator.validatePoWProof(hybridBlock, currentDifficulty.floorEntry(block.getHeight()).getValue());
     }
     
-    @Override
-    public HybridBlock proposeBlock(List<ClientReq> transactions, String previousHash) {
-        // Create HybridBlock with proper constructor parameters
-        int height = calculateNextHeight(previousHash);
-        int difficultyLevel = calculateDifficultyLevel(currentDifficulty);
+    public HybridBlock mineBlock(Block _previousBlock, List<ClientReq> transactions) {
+        if (_previousBlock == null || !(_previousBlock instanceof HybridBlock)) {
+            throw new IllegalArgumentException("Previous block must be a valid HybridBlock");
+        }
+
+        HybridBlock previousBlock = (HybridBlock) _previousBlock;
+
+        HybridBlock block = new HybridBlock(
+            previousBlock.getHash(), 
+            previousBlock.getHeight() + 1, 
+            transactions, 
+            currentDifficulty.lastEntry().getValue()
+        );
+
+        // We chose to start with a nonce of 0 but it's not mandatory
+        block.setNonce(0);
         
-        HybridBlock block = new HybridBlock(previousHash, height, transactions, difficultyLevel);
-        
-        // Start PoW mining
-        return mineBlock(block);
-    }
-    
-    @Override
-    public void finalizeBlock(HybridBlock block) {
-        // PoW doesn't finalize blocks, it proposes them
-        // Finalization is handled by PoSW
-        System.out.println("PoW block ready for PoSW finalization");
-    }
-    
-    @Override
-    public boolean validateBlock(HybridBlock block) {
-        return validator.validatePoWProof(block, currentDifficulty);
-    }
-    
-    @Override
-    public boolean isReadyForConsensus() {
-        return difficultyAdjuster != null && validator != null;
-    }
-    
-    private HybridBlock mineBlock(HybridBlock block) {
-        System.out.println("Starting PoW mining with difficulty: " + block.getDifficulty());
-        
-        while (!block.meetsDifficulty()) {
-            block.incrementNonce();
-            
-            // Recompute hash with new nonce
-            String newHash = block.computeBlockHash();
-            block.setHash(newHash);
-            
-            // Optional: Add periodic progress reporting
+        // we could do this in parallel (real world mining) but for academic purposes,
+        // we will do it sequentially because we're not focusing in exploring POW mining algorithms
+        while (!meetsDifficulty(block)) {
+            // Add periodic progress reporting
             if (block.getNonce() % 100000 == 0) {
                 System.out.println("Mining progress: " + block.getNonce() + " attempts");
             }
+            // We're incrementing the nonce until we find a valid hash, but other strategies could be used
+            block.setNonce(block.getNonce() + 1);    
         }
+
+        // Recompute hash with new nonce
+        String newHash = block.computeBlockHash(true);
+        block.setPOWHash(newHash);
+        block.setHash(newHash);
         
         System.out.println("Block mined! Hash: " + block.getHash() + 
                          ", Nonce: " + block.getNonce());
         return block;
     }
     
-    private int calculateNextHeight(String previousHash) {
-        // You'll need to implement this based on your blockchain structure
-        // For now, returning a placeholder
-        return 1; // This should be calculated from the blockchain
+    @Override
+    public void finalizeBlock(Block previousBlock) {
+        throw new UnsupportedOperationException("PoWConsensus does not support finalizing blocks directly. Use for mining instead.");
     }
-    
-    private int calculateDifficultyLevel(BigInteger difficulty) {
-        // Convert BigInteger difficulty to number of leading zeros
-        return Math.max(1, (int) (Math.log(difficulty.doubleValue()) / Math.log(16)));
-    }
-    
+
     public void adjustDifficulty(List<HybridBlock> recentBlocks) {
-        currentDifficulty = difficultyAdjuster.calculateNewDifficulty(
-            recentBlocks, currentDifficulty, TARGET_BLOCK_TIME);
+        Integer new_difficulty = difficultyAdjuster.calculateNewDifficulty(
+            recentBlocks, getCurrentDifficulty());
+
+        currentDifficulty.put(recentBlocks.get(recentBlocks.size() - 1).getHeight(), new_difficulty);
     }
     
-    public BigInteger getCurrentDifficulty() {
-        return currentDifficulty;
+    public Integer getCurrentDifficulty() {
+        return currentDifficulty.lastEntry().getValue();
     }
+
+    private boolean meetsDifficulty(HybridBlock block) {
+        Integer difficulty = currentDifficulty.floorEntry(block.getHeight()).getValue();
+        
+        String hash = block.computeBlockHash(true);
+        String requiredZeros = "0".repeat(difficulty); // difficulty as int (number of zeros)
+
+        // System.out.println("Checking if block meets difficulty:\n" + 
+        //                    "Hash: " + hash + ",\nRequired Zeros: " + requiredZeros);
+
+        return hash.startsWith(requiredZeros);
+    }
+
+
 }

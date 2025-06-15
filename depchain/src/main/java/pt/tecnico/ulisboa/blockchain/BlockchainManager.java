@@ -21,6 +21,9 @@ import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 
 import pt.tecnico.ulisboa.Config;
 import pt.tecnico.ulisboa.blockchain.blocks.Block;
+import pt.tecnico.ulisboa.consensus.ConsensusInterface;
+import pt.tecnico.ulisboa.consensus.ConsensusManager;
+import pt.tecnico.ulisboa.consensus.pow_plus_posw.hybrid.HybridConsensus;
 import pt.tecnico.ulisboa.contracts.AbiParameter.AbiType;
 import pt.tecnico.ulisboa.contracts.AbiParameter;
 import pt.tecnico.ulisboa.contracts.Contract;

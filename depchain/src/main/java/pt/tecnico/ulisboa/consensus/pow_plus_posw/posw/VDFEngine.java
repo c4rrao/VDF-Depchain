@@ -18,26 +18,12 @@ public class VDFEngine {
         }
     }
     
-    public SequentialProof computeVDF(byte[] input) {
-        // Pietrzak VDF Construction
-        BigInteger x = hashToGroup(input);
-        BigInteger y = sequentialSquaring(x, params.getTimeParameter());
-        
-        // Generate Pietrzak proof
-        List<BigInteger> proof = generatePietrzakProof(x, y, params.getTimeParameter());
-        
-        return new SequentialProof(y, proof, params.getTimeParameter());
-    }
-    
     private BigInteger hashToGroup(byte[] input) {
-        // Hash input to group element
         byte[] hash = hasher.digest(input);
         BigInteger hashInt = new BigInteger(1, hash);
-        
-        // Ensure the result is in the valid range modulo N
         return hashInt.mod(params.getModulus());
     }
-    
+
     private BigInteger sequentialSquaring(BigInteger x, long T) {
         // Compute x^(2^T) mod N sequentially
         BigInteger result = x;
@@ -46,44 +32,74 @@ public class VDFEngine {
             result = result.multiply(result).mod(params.getModulus());
             
             // Progress indicator for long computations
-            if (i % 10000 == 0) {
+            if (i % 1000000 == 0) {
                 System.out.println("VDF Progress: " + (i * 100 / T) + "%");
             }
         }
         
         return result;
     }
-    
-    private List<BigInteger> generatePietrzakProof(BigInteger x, BigInteger y, long T) {
-        List<BigInteger> proof = new ArrayList<>();
+
+    public SequentialProof computeVDF(byte[] input) {
+        BigInteger x = hashToGroup(input);
         
-        // Recursive halving approach for Pietrzak proof
-        generateProofRecursive(x, y, T, proof);
+        // Compute y = x^(2^T) and proof simultaneously
+        VDFResult result = computeVDFWithProof(x, params.getTimeParameter());
         
-        return proof;
+        return new SequentialProof(result.y, result.proofElements, params.getTimeParameter());
     }
-    
-    private void generateProofRecursive(BigInteger x, BigInteger y, long T, 
-                                      List<BigInteger> proof) {
-        if (T <= 1) {
-            return; // Base case
+
+    private VDFResult computeVDFWithProof(BigInteger x, long T) {
+        // Step 1: Compute y = x^(2^T) via sequential squaring
+        BigInteger y = sequentialSquaring(x, T);
+        
+        // Step 2: Generate Pietrzak proof using Fiat-Shamir heuristic
+        List<BigInteger> proofElements = new ArrayList<>();
+        
+        // Initialize for iterative proof generation
+        BigInteger xi = x;
+        BigInteger yi = y;
+        long Ti = T;
+        
+        int t = (int)(Math.log(T) / Math.log(2)); // log₂(T)
+        
+        // Generate proof elements μᵢ and update (xᵢ, yᵢ) iteratively
+        for (int i = 1; i <= t; i++) {
+            if (Ti <= 1) break;
+            
+            long halfTi = Ti / 2;
+            
+            // Compute μᵢ = xᵢ^(2^(T/2^i))
+            BigInteger mu_i = sequentialSquaring(xi, halfTi);
+            proofElements.add(mu_i);
+            
+            // Generate challenge rᵢ = hash((xᵢ, T/2^(i-1), yᵢ), μᵢ)
+            String challengeInput = xi.toString() + ":" + Ti + ":" + yi.toString() + ":" + mu_i.toString();
+            BigInteger ri = new BigInteger(1, hasher.digest(challengeInput.getBytes()))
+                            .mod(BigInteger.valueOf(2).pow(128));
+            
+            // Update for next iteration according to equations (9)
+            BigInteger xi_plus_1 = xi.modPow(ri, params.getModulus()).multiply(mu_i).mod(params.getModulus());
+            BigInteger yi_plus_1 = mu_i.modPow(ri, params.getModulus()).multiply(yi).mod(params.getModulus());
+            
+            // Update for next iteration
+            xi = xi_plus_1;
+            yi = yi_plus_1;
+            Ti = halfTi;
         }
         
-        long halfT = T / 2;
-        
-        // Compute middle value μ = x^(2^halfT) mod N
-        BigInteger mu = sequentialSquaring(x, halfT);
-        proof.add(mu);
-        
-        // Generate challenge
-        byte[] challengeInput = (x.toString() + y.toString() + mu.toString()).getBytes();
-        BigInteger r = new BigInteger(1, hasher.digest(challengeInput))
-                          .mod(BigInteger.valueOf(2).pow(128)); // 128-bit challenge
-        
-        // Recursive calls
-        BigInteger x_new = x.modPow(r, params.getModulus()).multiply(mu).mod(params.getModulus());
-        BigInteger y_new = mu.modPow(r, params.getModulus()).multiply(y).mod(params.getModulus());
-        
-        generateProofRecursive(x_new, y_new, halfT, proof);
+        return new VDFResult(y, proofElements);
     }
+
+    private static class VDFResult {
+        final BigInteger y;
+        final List<BigInteger> proofElements;
+        
+        VDFResult(BigInteger y, List<BigInteger> proofElements) {
+            this.y = y;
+            this.proofElements = proofElements;
+        }
+    }
+
+
 }

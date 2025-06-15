@@ -39,51 +39,83 @@ public class ProofVerifier {
     }
     
     private boolean verifyPietrzakProof(BigInteger x, BigInteger y, 
-                                      List<BigInteger> proof, long T) {
-        if (proof.isEmpty()) {
-            // Direct verification for small T
-            BigInteger expected = x;
-            for (long i = 0; i < T; i++) {
-                expected = expected.multiply(expected).mod(params.getModulus());
-            }
-            return expected.equals(y);
-        }
-        
-        // Recursive verification
+                                    List<BigInteger> proof, long T) {
         return verifyRecursive(x, y, T, proof, 0);
     }
-    
+
     private boolean verifyRecursive(BigInteger x, BigInteger y, long T, 
-                                  List<BigInteger> proof, int proofIndex) {
+                                List<BigInteger> proof, int proofIndex) {
         if (T <= 1) {
-            // Base case: direct verification
+            // Base case: verify y = x² mod N (equation 12)
             BigInteger expected = x.multiply(x).mod(params.getModulus());
             return expected.equals(y);
         }
         
         if (proofIndex >= proof.size()) {
-            return false; // Not enough proof elements
+            return false;
         }
         
         long halfT = T / 2;
         BigInteger mu = proof.get(proofIndex);
         
-        // Generate challenge
-        byte[] challengeInput = (x.toString() + y.toString() + mu.toString()).getBytes();
-        BigInteger r = new BigInteger(1, hasher.digest(challengeInput))
-                          .mod(BigInteger.valueOf(2).pow(128));
-        
-        // Compute new values
-        BigInteger x_new = x.modPow(r, params.getModulus()).multiply(mu).mod(params.getModulus());
-        BigInteger y_new = mu.modPow(r, params.getModulus()).multiply(y).mod(params.getModulus());
-        
-        // Verify consistency: μ^r * y should equal y_new
-        BigInteger check = mu.modPow(r, params.getModulus()).multiply(y).mod(params.getModulus());
-        if (!check.equals(y_new)) {
+        // Step 1: Check μ ∈ QR⁺ₙ (REQUIRED by algorithm)
+        if (!isInSignedQuadraticResidues(mu)) {
             return false;
         }
         
-        // Recursive verification
+        // Step 2: Generate challenge according to equation (10)
+        String challengeInput = x.toString() + ":" + (T) + ":" + y.toString() + ":" + mu.toString();
+        BigInteger r = new BigInteger(1, hasher.digest(challengeInput.getBytes()))
+                        .mod(BigInteger.valueOf(2).pow(128));
+        
+        // Step 3: Compute new values (equations 10-11)
+        BigInteger x_new = x.modPow(r, params.getModulus()).multiply(mu).mod(params.getModulus());
+        BigInteger y_new = mu.modPow(r, params.getModulus()).multiply(y).mod(params.getModulus());
+        
         return verifyRecursive(x_new, y_new, halfT, proof, proofIndex + 1);
     }
+
+    private boolean isInSignedQuadraticResidues(BigInteger x) {
+        if (x.signum() < 0) return false;
+        return jacobiSymbol(x, params.getModulus()) == 1;
+    }
+
+
+    private int jacobiSymbol(BigInteger a, BigInteger n) {
+        if (n.compareTo(BigInteger.ONE) <= 0 || n.remainder(BigInteger.valueOf(2)).equals(BigInteger.ZERO)) {
+            throw new IllegalArgumentException("n must be odd and > 1");
+        }
+        
+        a = a.remainder(n);
+        int result = 1;
+        
+        while (!a.equals(BigInteger.ZERO)) {
+            while (a.remainder(BigInteger.valueOf(2)).equals(BigInteger.ZERO)) {
+                a = a.divide(BigInteger.valueOf(2));
+                BigInteger nMod8 = n.remainder(BigInteger.valueOf(8));
+                if (nMod8.equals(BigInteger.valueOf(3)) || nMod8.equals(BigInteger.valueOf(5))) {
+                    result = -result;
+                }
+            }
+            
+            // Swap a and n
+            BigInteger temp = a;
+            a = n;
+            n = temp;
+            
+            if (a.remainder(BigInteger.valueOf(4)).equals(BigInteger.valueOf(3)) && 
+                n.remainder(BigInteger.valueOf(4)).equals(BigInteger.valueOf(3))) {
+                result = -result;
+            }
+            
+            a = a.remainder(n);
+        }
+        
+        if (n.equals(BigInteger.ONE)) {
+            return result;
+        } else {
+            return 0;
+        }
+    }
+
 }

@@ -1,19 +1,17 @@
 package pt.tecnico.ulisboa.consensus.pow_plus_posw.pow;
 
-import java.math.BigInteger;
 import java.util.List;
 
 import pt.tecnico.ulisboa.blockchain.blocks.HybridBlock;
 
 public class DifficultyAdjustment {
-    private static final int DIFFICULTY_ADJUSTMENT_INTERVAL = 2016; // blocks
-    // private static final int TARGET_TIMESPAN = 1209600; // 2 weeks in seconds
+    public static final int DIFFICULTY_ADJUSTMENT_INTERVAL = 2016; // blocks
+    private static final int TARGET_BLOCK_TIME = 600; // 10 minutes in seconds
     private static final double MAX_ADJUSTMENT_FACTOR = 4.0;
     private static final double MIN_ADJUSTMENT_FACTOR = 0.25;
     
-    public BigInteger calculateNewDifficulty(List<HybridBlock> recentBlocks, 
-                                           BigInteger currentDifficulty, 
-                                           int targetBlockTime) {
+    public Integer calculateNewDifficulty(List<HybridBlock> recentBlocks, 
+                                        Integer currentDifficulty) {
         
         if (recentBlocks.size() < DIFFICULTY_ADJUSTMENT_INTERVAL) {
             return currentDifficulty; // Not enough blocks for adjustment
@@ -29,24 +27,37 @@ public class DifficultyAdjustment {
         long lastBlockTime = adjustmentBlocks.get(adjustmentBlocks.size() - 1).getTimestamp();
         
         long actualTimespan = lastBlockTime - firstBlockTime;
-        long targetTimespan = targetBlockTime * DIFFICULTY_ADJUSTMENT_INTERVAL;
+        long targetTimespan = TARGET_BLOCK_TIME * DIFFICULTY_ADJUSTMENT_INTERVAL;
         
         // Calculate adjustment factor
         double adjustmentFactor = (double) targetTimespan / actualTimespan;
         
         // Apply bounds to prevent extreme changes
         adjustmentFactor = Math.max(MIN_ADJUSTMENT_FACTOR, 
-                          Math.min(MAX_ADJUSTMENT_FACTOR, adjustmentFactor));
+                        Math.min(MAX_ADJUSTMENT_FACTOR, adjustmentFactor));
         
-        // Calculate new difficulty
-        BigInteger newDifficulty = currentDifficulty.multiply(
-            BigInteger.valueOf((long) (adjustmentFactor * 1000000))
-        ).divide(BigInteger.valueOf(1000000));
+        // Calculate new difficulty (number of leading zeros)
+        int newDifficulty;
+        
+        if (adjustmentFactor > 1.0) {
+            // Blocks are being mined too slowly, increase difficulty (more zeros)
+            newDifficulty = currentDifficulty + 1;
+        } else if (adjustmentFactor < 1.0) {
+            // Blocks are being mined too fast, decrease difficulty (fewer zeros)
+            newDifficulty = Math.max(1, currentDifficulty - 1);
+        } else {
+            // Keep current difficulty
+            newDifficulty = currentDifficulty;
+        }
+        
+        // Ensure minimum difficulty of 1 (at least 1 leading zero)
+        newDifficulty = Math.max(1, newDifficulty);
         
         System.out.println("Difficulty adjusted from " + currentDifficulty + 
-                          " to " + newDifficulty + 
-                          " (factor: " + adjustmentFactor + ")");
+                        " to " + newDifficulty + " leading zeros" +
+                        " (factor: " + adjustmentFactor + ")");
         
         return newDifficulty;
     }
+
 }
