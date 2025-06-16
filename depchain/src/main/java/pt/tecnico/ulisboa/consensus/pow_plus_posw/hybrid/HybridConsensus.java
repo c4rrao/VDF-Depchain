@@ -34,7 +34,7 @@ public class HybridConsensus implements ConsensusInterface {
 
                 HybridBlock newBlock = consensus.mineBlock(previousBlock, new ArrayList<>());
 
-                if (consensus.validateBlock(newBlock)) {
+                if (!consensus.validateBlock(newBlock)) {
                     System.out.println("BLOCK IS INVALID");
                 }
                 
