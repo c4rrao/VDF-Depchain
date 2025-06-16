@@ -45,7 +45,7 @@ public class ProofVerifier {
         long endTime = System.nanoTime();
         
         double elapsedMs = (endTime - startTime) / 1e6;
-        System.out.printf("VDF Verification Time: %.3f ms (T=%d, proofSize=%d)%n", 
+        System.out.printf("[PRECISE] VDF Verification Time: %.3f ms (T=%d, proofSize=%d)%n", 
                         elapsedMs, T, proof.size());
         return result;
     }
@@ -60,12 +60,14 @@ public class ProofVerifier {
         if (T == 1) {
             // Base case: verify y = x² mod N (equation 12)
             BigInteger expected = x.multiply(x).mod(params.getModulus());
+            
+            boolean output = expected.equals(y);
 
-            if (expected.equals(y)) {
-                System.out.println("VERIFICATION PASSED");
+            if (output) {
+                System.out.println("\n VERIFICATION PASSED \n");
             }
 
-            return expected.equals(y);
+            return output;
         }
         
         if (proofIndex >= proof.size()) {

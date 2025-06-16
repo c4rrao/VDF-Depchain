@@ -40,7 +40,7 @@ public class PoSWConsensus implements ConsensusInterface {
         long endTime = System.nanoTime();
         
         double elapsedSeconds = (endTime - startTime) / 1e6;
-        System.out.printf("VDF Solving Time: %.3f ms (T=%d)%n", 
+        System.out.printf("[PRECISE] VDF Solving Time: %.3f ms (T=%d)%n", 
                             elapsedSeconds, vdfParams.getTimeParameter());
         
         // Add VDF proof to the block
