@@ -1,6 +1,8 @@
 // VDFParameters.java - Use proper RSA modulus
 package pt.tecnico.ulisboa.consensus.pow_plus_posw.posw;
 
+import java.security.*;
+import java.security.interfaces.RSAPublicKey;
 import java.math.BigInteger;
 
 public class VDFParameters {
@@ -9,22 +11,20 @@ public class VDFParameters {
     private final int securityParameter;
     
     public VDFParameters() {
-        this.T = 1000000;
+        this.T = (long) Math.pow(2,20);
         this.securityParameter = 128;
-        this.modulus = generateSafeModulus();
+        this.modulus = generateRSAModulus(2048);
     }
-    
-    private BigInteger generateSafeModulus() {
-        // Use RSA-2048 (known safe modulus for production)
-        return new BigInteger("25195908475657893494027183240048398571429282126204032027777" +
-                             "13783604366202070759555626401852588078440691829064124951508" +
-                             "21168602781844060346746137046874871543805434567890123456789" +
-                             "01234567890123456789012345678901234567890123456789012345678" +
-                             "90123456789012345678901234567890123456789012345678901234567" +
-                             "89012345678901234567890123456789012345678901234567890123456" +
-                             "789012345678901234567890123456789012345678901234567890123456" +
-                             "789012345678901234567890123456789012345678901234567890123456" +
-                             "789012345678901234567890123456789");
+
+    private BigInteger generateRSAModulus(int bitLength) {
+        try {
+            KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+            keyGen.initialize(bitLength);
+            RSAPublicKey publicKey = (RSAPublicKey) keyGen.generateKeyPair().getPublic();
+            return publicKey.getModulus();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Failed to generate RSA modulus", e);
+        }
     }
     
     public BigInteger getModulus() { return modulus; }
