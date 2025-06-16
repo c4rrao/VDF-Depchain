@@ -40,38 +40,68 @@ public class ProofVerifier {
     
     private boolean verifyPietrzakProof(BigInteger x, BigInteger y, 
                                     List<BigInteger> proof, long T) {
-        return verifyRecursive(x, y, T, proof, 0);
+        long startTime = System.nanoTime();  // Start timer
+        boolean result = verifyRecursive(x, y, T, proof, 0);
+        long endTime = System.nanoTime();
+        
+        double elapsedMs = (endTime - startTime) / 1e6;
+        System.out.printf("VDF Verification Time: %.3f ms (T=%d, proofSize=%d)%n", 
+                        elapsedMs, T, proof.size());
+        return result;
     }
 
     private boolean verifyRecursive(BigInteger x, BigInteger y, long T, 
                                 List<BigInteger> proof, int proofIndex) {
-        if (T <= 1) {
+        
+        System.out.println("\n--- Verification Step " + proofIndex + " (T=" + T + ") ---");       //debugging
+        System.out.println("x: " + x.toString(16).substring(0, 16) + "...");
+        System.out.println("y: " + y.toString(16).substring(0, 16) + "...");
+        
+        if (T == 1) {
             // Base case: verify y = x² mod N (equation 12)
             BigInteger expected = x.multiply(x).mod(params.getModulus());
+
+            if (expected.equals(y)) {
+                System.out.println("VERIFICATION PASSED");
+            }
+
             return expected.equals(y);
         }
         
         if (proofIndex >= proof.size()) {
+            System.err.println("ERROR: Proof too short at step " + proofIndex);  //debugging
             return false;
         }
         
-        long halfT = T / 2;
+        long halfT = T % 2 == 0 ? T / 2 : (T + 1) / 2; 
         BigInteger mu = proof.get(proofIndex);
+        System.out.println("μ: " + mu.toString(16).substring(0, 16) + "...");  //debugging
         
         // Step 1: Check μ ∈ QR⁺ₙ (REQUIRED by algorithm)
         if (!isInSignedQuadraticResidues(mu)) {
+            System.err.println("FAIL: μ ∉ QRₙ⁺");     //debugging
+            System.err.println("μ: " + mu);
+            System.err.println("Jacobi: " + jacobiSymbol(mu, params.getModulus()));
             return false;
         }
         
         // Step 2: Generate challenge according to equation (10)
         String challengeInput = x.toString() + ":" + (T) + ":" + y.toString() + ":" + mu.toString();
         BigInteger r = new BigInteger(1, hasher.digest(challengeInput.getBytes()))
-                        .mod(BigInteger.valueOf(2).pow(128));
+                        .mod(BigInteger.valueOf(2).pow(params.getSecurityParameter()));
         
+        System.out.println("r: " + r.toString(16).substring(0, 16) + "..."); //debugging
+
         // Step 3: Compute new values (equations 10-11)
         BigInteger x_new = x.modPow(r, params.getModulus()).multiply(mu).mod(params.getModulus());
         BigInteger y_new = mu.modPow(r, params.getModulus()).multiply(y).mod(params.getModulus());
         
+        // Handle odd T (Section 3.1 of the paper)
+        if (T % 2 != 0) {
+            System.out.println("Odd T adjustment: squaring y_new");  //debugging
+            y_new = y_new.multiply(y_new).mod(params.getModulus());
+        }
+
         return verifyRecursive(x_new, y_new, halfT, proof, proofIndex + 1);
     }
 
