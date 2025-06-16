@@ -35,12 +35,13 @@ public class PoSWConsensus implements ConsensusInterface {
         byte[] vdfInput = generateVDFInput(block);
         
         // Compute VDF proof (this takes time T)
-        long startTime = System.currentTimeMillis();
+        long startTime = System.nanoTime();  // Start timer
         SequentialProof proof = vdfEngine.computeVDF(vdfInput);
-        long computationTime = System.currentTimeMillis() - startTime;
+        long endTime = System.nanoTime();
         
-        System.out.println("VDF computation completed in " + 
-                            computationTime + "ms");
+        double elapsedSeconds = (endTime - startTime) / 1e6;
+        System.out.printf("VDF Solving Time: %.3f ms (T=%d)%n", 
+                            elapsedSeconds, vdfParams.getTimeParameter());
         
         // Add VDF proof to the block
         block.setVDFProof(proof);
